@@ -2,44 +2,51 @@
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 
 
-import java.math.BigInteger;
-import java.util.Scanner;
-import java.lang.Math;
-import java.io.IOException;
-import java.io.*;
-import java.text.*;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.NumberFormat;
 
 public class Main {
 
-    // e
+    // Возводит x в степень y
     public static double myPow(double x, int y) {
         double result = 1;
-        if (y > 0) {
-            for (int i = 1; i <= y; i++) {
-                result = x;
-            }
+        for (int i = 0; i < Math.abs(y); i++) {
+            result *= x;
         }
-
-        else if (y < 0) {
-            for (int i = 0; i <= (-y); i++) {
-                result /= x;
-            }
-        } else {
-            result = 1;
-        }
-        return result;
+        return (y < 0) ? 1 / result : result;
     }
 
-    //Функция через ряд Тейлора
+    // Вычисление ln(1 - x) через ряд Тейлора
     public static double myFunction(double x, double e) {
         double y = 0;
-        double p = -x;
-        double k = 1;
-        while (Math.abs(p) > e) {
-            p = (-x*Math.pow (x,k-1) )/ k;
-            y += p;
-            k += 1;
+        double term = -x; // Первый член ряда
+        int k = 1;
+
+        // Суммируем члены ряда до достижения заданной точности e
+        while (Math.abs(term) > e) {
+            y += term;
+            term *= -x / k; // Обновляем член для следующей итерации
+            k++;
+        }
+        return y;
+    }
+
+    // Вычисление cos(x) через ряд Тейлора
+    public static double myCos(double x, double e) {
+        double y = 0;
+        double term = 1; // Первый член ряда
+        int k = 0;
+
+        // Суммируем члены ряда до достижения заданной точности e
+        while (Math.abs(term) > e) {
+            y += term;
+            k++;
+            term *= -x * x / ((2 * k) * (2 * k - 1)); // Обновляем член для следующей итерации
         }
         return y;
     }
@@ -48,8 +55,7 @@ public class Main {
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
         try {
-
-            System.out.println("Введите x ∈ (-1,+1): ");
+            System.out.println("Введите x ∈ (-1, +1): ");
             String line = br.readLine();
             double ourNumber = Double.parseDouble(line);
             BigDecimal ourNumber_1 = new BigDecimal(line);
@@ -60,42 +66,34 @@ public class Main {
             ourDegree = -ourDegree;
             double e = myPow(10, ourDegree);
 
-            // расчёт e для BigDacimal
-            BigDecimal ourDegree_1 = new BigDecimal(secondLine);
-            BigDecimal first_1= new BigDecimal(-1);
-            BigDecimal ten_1= new BigDecimal(10.0);
-            ourDegree_1 = ourDegree_1.negate();
-            BigDecimal newDegree_1=new BigDecimal(ourDegree_1.doubleValue());
-            BigDecimal e_1 =new BigDecimal(1.0);
-
-            for(int i=0; i<=newDegree_1.doubleValue(); i++) {
-                e_1.divide(ten_1);
-            }
-
-            // установка знвнаков после запятой
+            // Форматирование вывода
             NumberFormat formatter = NumberFormat.getNumberInstance();
             formatter.setMaximumFractionDigits(3);
 
-            System.out.println("Результат через стандартные функции: ");
-            double result = Math.log(1 - ourNumber);
-            System.out.println(formatter.format(result));
+            // Стандартное вычисление логарифма
+            System.out.println("Результат через стандартные функции (ln(1 - x)): ");
+            double lnResult = Math.log(1 - ourNumber);
+            System.out.println(formatter.format(lnResult));
 
-            System.out.println("Результат через ряд Тейлора: ");
-            double myResult = myFunction(ourNumber, e);
-            System.out.println(formatter.format(myResult));
+            // Результат через ряд Тейлора для ln(1 - x)
+            System.out.println("Результат через ряд Тейлора (ln(1 - x)): ");
+            double myLnResult = myFunction(ourNumber, e);
+            System.out.println(formatter.format(myLnResult));
 
-            System.out.println("Результат с использованием класса BigDecimal: ");
-            BigDecimal result_1 = new BigDecimal(ourNumber_1.toString()).multiply(first_1);
-            BigDecimal newOurNumber_1=new BigDecimal(1-ourNumber_1.doubleValue());
-            result_1=new BigDecimal( Math.log(newOurNumber_1.doubleValue()));
-            System.out.println(formatter.format(Math.log(newOurNumber_1.doubleValue())));
-        }
-        //  проверка ввода
-        catch (NumberFormatException e) {
-            System.out.println("Не число");
-        }
-        catch (IOException e) {
-            System.out.println("Ошибка чтения с клавиатуры");
+            // Результат через ряд Тейлора для cos(x)
+            System.out.println("Результат через ряд Тейлора (cos(x)): ");
+            double myCosResult = myCos(ourNumber, e);
+            System.out.println(formatter.format(myCosResult));
+
+            // Сумма результатов
+            double sumResult = myLnResult + myCosResult;
+            System.out.println("Сумма результатов (ln(1 - x) + cos(x)): ");
+            System.out.println(formatter.format(sumResult));
+
+        } catch (NumberFormatException e) {
+            System.out.println("Ошибка: введено не число.");
+        } catch (IOException e) {
+            System.out.println("Ошибка чтения с клавиатуры.");
         }
     }
 }
